@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
         if (SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()){
-                loaderViewModel.getGalleryFilesAndroidR(this)
+                loaderViewModel.getGalleryFiles()
             }else{
                 showPermissionDialog()
             }
@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
     private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()){
-                loaderViewModel.getGalleryFilesAndroidR(this)
+                loaderViewModel.getGalleryFiles()
             }else{
                 showPermissionDialog()
             }
