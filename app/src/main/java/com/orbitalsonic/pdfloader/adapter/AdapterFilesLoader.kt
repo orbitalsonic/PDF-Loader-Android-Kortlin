@@ -6,7 +6,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.orbitalsonic.pdfloader.R
 import com.orbitalsonic.pdfloader.databinding.ItemFilesBinding
 import com.orbitalsonic.pdfloader.datamodel.FileItem
@@ -25,20 +24,20 @@ class AdapterFilesLoader : ListAdapter<FileItem, RecyclerView.ViewHolder>(DATA_C
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding: ItemFilesBinding = DataBindingUtil.inflate(layoutInflater,
             R.layout.item_files,parent,false)
-        viewHolder = GalleryLoaderViewHolder(binding, mListener!!)
+        viewHolder = LoaderViewHolder(binding, mListener!!)
         return viewHolder
 
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val currentItem = getItem(position)
-        val viewHolder = holder as GalleryLoaderViewHolder
+        val viewHolder = holder as LoaderViewHolder
         viewHolder.bind(currentItem)
 
     }
 
 
-    class GalleryLoaderViewHolder(binding:ItemFilesBinding, listener: OnItemClickListener) :
+    class LoaderViewHolder(binding:ItemFilesBinding, listener: OnItemClickListener) :
         RecyclerView.ViewHolder(binding.root) {
         private val mBinding = binding
         init {
@@ -51,13 +50,7 @@ class AdapterFilesLoader : ListAdapter<FileItem, RecyclerView.ViewHolder>(DATA_C
         }
 
         fun bind(mCurrentItem: FileItem) {
-            Glide.with(mBinding.root.context)
-                .load(R.drawable.icon_pdf)
-                .placeholder(R.drawable.bg_glide)
-                .centerCrop()
-                .into(mBinding.fileImage)
-
-            mBinding.fileName.text = mCurrentItem.pdfFilePath.name
+            mBinding.fileName.text = mCurrentItem.fileName
         }
 
     }

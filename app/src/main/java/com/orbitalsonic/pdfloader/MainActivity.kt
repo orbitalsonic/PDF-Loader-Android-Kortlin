@@ -9,7 +9,6 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,7 +23,6 @@ import com.orbitalsonic.pdfloader.adapter.AdapterFilesLoader
 import com.orbitalsonic.pdfloader.databinding.ActivityMainBinding
 import com.orbitalsonic.pdfloader.interfaces.OnDialogPermissionClickListener
 import com.orbitalsonic.pdfloader.interfaces.OnItemClickListener
-import com.orbitalsonic.pdfloader.manager.LoaderManager
 import com.orbitalsonic.pdfloader.utils.Constants.STORAGE_PERMISSION
 import com.orbitalsonic.pdfloader.utils.DialogUtils
 import com.orbitalsonic.pdfloader.viewmodel.LoaderViewModel
@@ -45,13 +43,13 @@ class MainActivity : AppCompatActivity() {
 
         if (SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()){
-                loaderViewModel.getGalleryFiles()
+                getFiles()
             }else{
                 showPermissionDialog()
             }
         } else {
             if (checkReadWritePermission()) {
-                loaderViewModel.getGalleryFiles()
+                getFiles()
             }else{
                 requestStoragePermission()
             }
@@ -59,22 +57,28 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun getFiles(){
+        loaderViewModel.fetchPdfFiles(0){
+            submitList()
+        }
+    }
+
+    private fun submitList(){
+        if (!loaderViewModel.isFilesListEmpty()){
+            binding.loadingProgressBar.visibility = View.GONE
+            binding.noFilesLayout.visibility = View.GONE
+            mAdapter.submitList(loaderViewModel.fileList)
+
+        }else{
+            binding.loadingProgressBar.visibility = View.GONE
+            binding.noFilesLayout.visibility = View.VISIBLE
+            mAdapter.submitList(loaderViewModel.fileList)
+        }
+    }
+
     private fun initViewModel(){
         loaderViewModel = ViewModelProvider(this).get(LoaderViewModel::class.java)
-        loaderViewModel.isFilesLoaded.observe(this) {
-            if (it){
-                binding.loadingProgressBar.visibility = View.GONE
-                Log.i("PDFTesting","${LoaderManager.pdfFileList.size}")
-                mAdapter.submitList(LoaderManager.pdfFileList)
-                if (LoaderManager.isFilesListEmpty()){
-                    binding.noFilesLayout.visibility = View.VISIBLE
-                }
 
-            }else{
-                binding.loadingProgressBar.visibility = View.GONE
-                binding.noFilesLayout.visibility = View.GONE
-            }
-        }
     }
 
     private fun createLoaderRecyclerView() {
@@ -136,9 +140,8 @@ class MainActivity : AppCompatActivity() {
 
         if (STORAGE_PERMISSION==requestCode){
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                loaderViewModel.getGalleryFiles()
+                getFiles()
             } else {
-                loaderViewModel.setFilesLoaded(false)
                 showMessage("Permission Denied!")
             }
         }
@@ -149,7 +152,7 @@ class MainActivity : AppCompatActivity() {
     private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()){
-                loaderViewModel.getGalleryFiles()
+               getFiles()
             }else{
                 showPermissionDialog()
             }
@@ -164,18 +167,12 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this,message,Toast.LENGTH_SHORT).show()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        LoaderManager.clearFilesData()
-    }
-
     private fun showPermissionDialog() {
 
         DialogUtils.permissionDialog(
             this,
             object : OnDialogPermissionClickListener {
                 override fun onDiscardClick() {
-                    loaderViewModel.setFilesLoaded(false)
                 }
 
                 @RequiresApi(Build.VERSION_CODES.R)
